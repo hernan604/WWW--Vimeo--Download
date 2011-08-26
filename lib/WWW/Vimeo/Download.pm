@@ -43,13 +43,13 @@ has res => (    #browser response
 );
 
 has xml => (
-    is => 'rw',
+    is  => 'rw',
     isa => 'Any',
 );
 
 has target_dir => (
-    is => 'rw',
-    isa => 'Str',
+    is      => 'rw',
+    isa     => 'Str',
     default => './',
 );
 
@@ -59,7 +59,9 @@ sub load_video {
         if ( $video_id_or_url =~ m{http://www\.vimeo\.com/([^/]+)}i ) {
             $self->video_id($1);
         }
-        elsif ( $video_id_or_url =~ m{http://vimeo.com/groups/([^/]+)/videos/([^/]+)}i ) {
+        elsif ( $video_id_or_url =~
+            m{http://vimeo.com/groups/([^/]+)/videos/([^/]+)}i )
+        {
             $self->video_id($2);
         }
         else {
@@ -74,8 +76,11 @@ sub load_video {
 }
 
 sub download {
-    my ( $self ) = @_; 
-    warn "Please set a video url first. ex: \$vimeo->load_video( 'http://www.vimeo.com/27855315' ) " and return if ! $self->download_url;
+    my ($self) = @_;
+    warn
+"Please set a video url first. ex: \$vimeo->load_video( 'http://www.vimeo.com/27855315' ) "
+      and return
+      if !$self->download_url;
     $self->res( $self->browser->get( $self->download_url ) );
     if ( defined $self->res and $self->res->is_success ) {
         $self->prepare_nfo;
@@ -85,41 +90,42 @@ sub download {
 }
 
 sub save_video {
-    my ( $self, $video_data ) = @_; 
-    my $filename = $self->filename( $self->target_dir.'/'.$self->filename. '.mp4' );
+    my ( $self, $video_data ) = @_;
+    my $filename =
+      $self->filename( $self->target_dir . '/' . $self->filename . '.mp4' );
     open FH, ">$filename";
     print FH $video_data;
     close FH;
 }
 
 sub save_nfo {
-    my ( $self ) = @_; 
-    $self->filename_nfo( $self->target_dir.'/'.$self->filename. '.nfo' );
+    my ($self) = @_;
+    $self->filename_nfo( $self->target_dir . '/' . $self->filename . '.nfo' );
     my $filename = $self->filename_nfo;
     open FH, ">$filename";
     print FH $self->nfo;
     close FH;
 }
 
-  sub prepare_nfo {
-      my ( $self ) = @_;
+sub prepare_nfo {
+    my ($self) = @_;
 
-      my $info = form
-  "===============================================================================",
-  "--[ WWW::Vimeo::Download ]-----------------------------------------------------",
-  "                                                                               ",
-  "  {||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||} ",
-        "[" . $self->caption . "]",
-  "                                                                               ",
-  "  .............Title: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-        $self->caption,
-  "  .........Video Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-        $self->url,
-  "  ............Author: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-        $self->uploader_display_name,
-  "  ........Author Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-        $self->uploader_url,
-  "                                                                               ",
+    my $info = form
+"===============================================================================",
+"--[ WWW::Vimeo::Download ]-----------------------------------------------------",
+"                                                                               ",
+"  {||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||} ",
+      "[" . $self->caption . "]",
+"                                                                               ",
+"  .............Title: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+      $self->caption,
+"  .........Video Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+      $self->url,
+"  ............Author: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+      $self->uploader_display_name,
+"  ........Author Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+      $self->uploader_url,
+"                                                                               ",
 "                                [ REVIEW ]                                     ",
 "                                                                               ",
 "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
@@ -128,7 +134,7 @@ sub save_nfo {
 "---------------------------------------------------[ version $VER by HERNAN ]--",
 "==============================================================================="
       ,;
-$self->nfo( $info );
+    $self->nfo($info);
 }
 
 sub title_to_filename {
@@ -136,13 +142,14 @@ sub title_to_filename {
     $title =~ s/\W/-/ig;
     $title =~ s/--{1,}/-/ig;
     $title =~ s/^-|-$//ig;
-    $title =~ tr/àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ/aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY/ ;
+    $title =~
+tr/àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ/aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY/;
     return $title;
 }
 
 sub set_filename {
-    my ( $self ) = @_; 
-    $self->filename( $self->title_to_filename( $self->caption) );
+    my ($self) = @_;
+    $self->filename( $self->title_to_filename( $self->caption ) );
 }
 
 sub set_download_url {
@@ -158,28 +165,32 @@ sub set_download_url {
         )
     );
     if ( $self->res->is_success ) {
-        $self->xml(XML::XPath->new( xml => $self->res->content ));
+        $self->xml( XML::XPath->new( xml => $self->res->content ) );
 
-        $self->caption( $self->xml->findvalue( '/xml/video/caption')) and $self->set_filename;
-        $self->width($self->xml->findvalue( '/xml/video/width'));
-        $self->height($self->xml->findvalue( '/xml/video/height'));
-        $self->duration($self->xml->findvalue( '/xml/video/duration'));
-        $self->thumbnail($self->xml->findvalue( '/xml/video/thumbnail'));
-        $self->totalComments($self->xml->findvalue( '/xml/video/totalComments'));
-        $self->totalLikes($self->xml->findvalue( '/xml/video/totalLikes'));
-        $self->totalPlays($self->xml->findvalue( '/xml/video/totalPlays'));
-        $self->url_clean($self->xml->findvalue( '/xml/video/url_clean'));
-        $self->url($self->xml->findvalue( '/xml/video/url'));
-        $self->uploader_url($self->xml->findvalue( '/xml/video/uploader_url'));
-        $self->uploader_portrait($self->xml->findvalue( '/xml/video/uploader_portrait'));
-        $self->uploader_display_name($self->xml->findvalue( '/xml/video/uploader_display_name'));
-        $self->nodeId($self->xml->findvalue( '/xml/video/nodeId'));
-        $self->isHD($self->xml->findvalue( '/xml/video/isHD'));
-        $self->privacy($self->xml->findvalue( '/xml/video/privacy'));
-        $self->isPrivate($self->xml->findvalue( '/xml/video/isPrivate'));
-        $self->isPassword($self->xml->findvalue( '/xml/video/isPassword'));
-        $self->isNobody($self->xml->findvalue( '/xml/video/isNobody'));
-        $self->embed_code($self->xml->findvalue( '/xml/video/embed_code'));
+        $self->caption( $self->xml->findvalue('/xml/video/caption') )
+          and $self->set_filename;
+        $self->width( $self->xml->findvalue('/xml/video/width') );
+        $self->height( $self->xml->findvalue('/xml/video/height') );
+        $self->duration( $self->xml->findvalue('/xml/video/duration') );
+        $self->thumbnail( $self->xml->findvalue('/xml/video/thumbnail') );
+        $self->totalComments(
+            $self->xml->findvalue('/xml/video/totalComments') );
+        $self->totalLikes( $self->xml->findvalue('/xml/video/totalLikes') );
+        $self->totalPlays( $self->xml->findvalue('/xml/video/totalPlays') );
+        $self->url_clean( $self->xml->findvalue('/xml/video/url_clean') );
+        $self->url( $self->xml->findvalue('/xml/video/url') );
+        $self->uploader_url( $self->xml->findvalue('/xml/video/uploader_url') );
+        $self->uploader_portrait(
+            $self->xml->findvalue('/xml/video/uploader_portrait') );
+        $self->uploader_display_name(
+            $self->xml->findvalue('/xml/video/uploader_display_name') );
+        $self->nodeId( $self->xml->findvalue('/xml/video/nodeId') );
+        $self->isHD( $self->xml->findvalue('/xml/video/isHD') );
+        $self->privacy( $self->xml->findvalue('/xml/video/privacy') );
+        $self->isPrivate( $self->xml->findvalue('/xml/video/isPrivate') );
+        $self->isPassword( $self->xml->findvalue('/xml/video/isPassword') );
+        $self->isNobody( $self->xml->findvalue('/xml/video/isNobody') );
+        $self->embed_code( $self->xml->findvalue('/xml/video/embed_code') );
 
         my $request_signature = $self->xml->findvalue('/xml/request_signature');
         my $request_signature_expires =
@@ -204,7 +215,7 @@ sub set_download_url {
         if ( defined $video_download_url ) {
             $self->download_url( $video_download_url->as_string );
         }
-        $self->xml( undef );
+        $self->xml(undef);
     }
     else {
         warn "Could not get success response for req. error: "
