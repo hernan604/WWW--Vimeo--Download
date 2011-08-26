@@ -6,7 +6,7 @@ use HTTP::Request;
 use Perl6::Form;
 use utf8;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 my $VER = $VERSION;
 
 has video_id => (
