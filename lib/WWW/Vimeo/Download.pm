@@ -244,7 +244,7 @@ sub set_download_url {
 
     Hernan Lopes
     CPAN ID: HERNAN
-    hernan < @t > gmail
+    hernanlopes < @t > gmail
     https://github.com/hernan604
 
 =head1 COPYRIGHT
