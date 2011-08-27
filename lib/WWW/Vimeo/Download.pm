@@ -6,7 +6,7 @@ use HTTP::Request;
 use Perl6::Form;
 use utf8;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 my $VER = $VERSION;
 
 has video_id => (
@@ -76,23 +76,35 @@ sub load_video {
 }
 
 sub download {
-    my ($self) = @_;
+    my ( $self, $args ) = @_;
     warn
 "Please set a video url first. ex: \$vimeo->load_video( 'http://www.vimeo.com/27855315' ) "
       and return
       if !$self->download_url;
     $self->res( $self->browser->get( $self->download_url ) );
     if ( defined $self->res and $self->res->is_success ) {
-        $self->prepare_nfo;
-        $self->save_nfo;
-        $self->save_video( $self->res->content );
+        if ( !exists $args->{filename} ) {
+            $self->prepare_nfo;
+            $self->save_nfo;
+            $self->save_video( $self->res->content );
+        }
+        else {
+            $self->save_video( $self->res->content, $args );
+        }
     }
 }
 
 sub save_video {
-    my ( $self, $video_data ) = @_;
-    my $filename =
-      $self->filename( $self->target_dir . '/' . $self->filename . '.mp4' );
+    my ( $self, $video_data, $args ) = @_;
+    my $filename;
+    if ( !exists $args->{filename} ) {
+        $filename =
+          $self->filename( $self->target_dir . '/' . $self->filename . '.mp4' );
+    }
+    else {
+        $filename =
+          $self->filename( $self->target_dir . '/' . $args->{filename} );
+    }
     open FH, ">$filename";
     print FH $video_data;
     close FH;
@@ -235,6 +247,7 @@ sub set_download_url {
     $vimeo->load_video( 'XYZ__ID_VIDEO' );        #REQ videoid or video url
     $vimeo->target_dir( '/home/catalyst/tmp/' );  #OPTIONAL target dir
     $vimeo->download();                           #start download
+    $vimeo->download( { filename =>'file.mp4'} ); #start download custom filename
     print $vimeo->download_url;                   #print the url for download
 
 =head1 DESCRIPTION

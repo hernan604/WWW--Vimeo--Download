@@ -33,4 +33,19 @@ ok( -e $vimeo->filename, 'downloaded file with success' );
 unlink( $vimeo->filename_nfo );
 unlink( $vimeo->filename );
 
+
+
+
+#custom filename
+$vimeo->load_video('23825818'); #very short video, good for testing.. 2mb
+ok( $vimeo->download_url =~ m/^http/, 'found download url for video' );
+my $filename = 'mymovie.xyz';
+$vimeo->download( { filename => $filename } );
+ok( -e $filename, 'downloaded file with success' );
+unlink( $filename );
+
+
+
+
+
 done_testing;
