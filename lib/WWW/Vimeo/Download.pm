@@ -1,7 +1,6 @@
 package WWW::Vimeo::Download;
 use Moose;
-use XML::XPath;
-use LWP::UserAgent;
+use HTTP::Tiny;
 use HTTP::Request;
 use Perl6::Form;
 use utf8;
@@ -29,20 +28,16 @@ has [
 
 has browser => (
     is      => 'ro',
-    isa     => 'LWP::UserAgent',
+#   isa     => 'LWP::UserAgent',
     default => sub {
-        my $ua = LWP::UserAgent->new();
-        $ua->agent('Windows IE 6');
+        my $ua = HTTP::Tiny->new(
+          agent => 'Mozilla/5.0 (X11; Windux x86_64; rv:21.0) Gecko/20100101 Firefox/20.0'
+        );
         return $ua;
     },
 );
 
 has res => (    #browser response
-    is  => 'rw',
-    isa => 'Any',
-);
-
-has xml => (
     is  => 'rw',
     isa => 'Any',
 );
@@ -56,7 +51,7 @@ has target_dir => (
 sub load_video {
     my ( $self, $video_id_or_url ) = @_;
     if ( defined $video_id_or_url ) {
-        if ( $video_id_or_url =~ m{http://www\.vimeo\.com/([^/]+)}i ) {
+        if ( $video_id_or_url =~ m{http://www\.vimeo\.com/([^/]+)}i || $video_id_or_url =~ m{http://vimeo\.com/([^/]+)}i) {
             $self->video_id($1);
         }
         elsif ( $video_id_or_url =~
@@ -82,14 +77,14 @@ sub download {
       and return
       if !$self->download_url;
     $self->res( $self->browser->get( $self->download_url ) );
-    if ( defined $self->res and $self->res->is_success ) {
+    if ( defined $self->res and $self->res->{success} ) {
         if ( !exists $args->{filename} ) {
-            $self->prepare_nfo;
-            $self->save_nfo;
-            $self->save_video( $self->res->content );
+           #$self->prepare_nfo;
+           #$self->save_nfo;
+            $self->save_video( $self->res->{content} );
         }
         else {
-            $self->save_video( $self->res->content, $args );
+            $self->save_video( $self->res->{content}, $args );
         }
     }
 }
@@ -122,118 +117,61 @@ sub save_nfo {
 sub prepare_nfo {
     my ($self) = @_;
 
-    my $info = form
-"===============================================================================",
-"--[ WWW::Vimeo::Download ]-----------------------------------------------------",
-"                                                                               ",
-"  {||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||} ",
-      "[" . $self->caption . "]",
-"                                                                               ",
-"  .............Title: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-      $self->caption,
-"  .........Video Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-      $self->url,
-"  ............Author: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-      $self->uploader_display_name,
-"  ........Author Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
-      $self->uploader_url,
-"                                                                               ",
-"                                [ REVIEW ]                                     ",
-"                                                                               ",
-"  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
-      $self->thumbnail,
-"                                                                               ",
-"---------------------------------------------------[ version $VER by HERNAN ]--",
-"==============================================================================="
-      ,;
-    $self->nfo($info);
+#   my $info = form
+#   "===============================================================================",
+#   "--[ WWW::Vimeo::Download ]-----------------------------------------------------",
+#   "                                                                               ",
+#   "  {||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||} ",
+#         "[" . $self->caption . "]",
+#   "                                                                               ",
+#   "  .............Title: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+#         $self->caption,
+#   "  .........Video Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+#         $self->url,
+#   "  ............Author: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+#         $self->uploader_display_name,
+#   "  ........Author Url: {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<} ",
+#         $self->uploader_url,
+#   "                                                                               ",
+#   "                                [ REVIEW ]                                     ",
+#   "                                                                               ",
+#   "  {[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[} ",
+#         $self->thumbnail,
+#   "                                                                               ",
+#   "---------------------------------------------------[ version $VER by HERNAN ]--",
+#   "==============================================================================="
+#     ,;
+#   $self->nfo($info);
 }
 
 sub title_to_filename {
     my ( $self, $title ) = @_;
     $title =~ s/\W/-/ig;
-    $title =~ s/--{1,}/-/ig;
+    $title =~ s/-{2,}/-/ig;
     $title =~ s/^-|-$//ig;
     $title =~
 tr/àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ/aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY/;
     return $title;
 }
 
-sub set_filename {
-    my ($self) = @_;
-    $self->filename( $self->title_to_filename( $self->caption ) );
-}
-
 sub set_download_url {
     my ($self) = @_;
 
-    #sets the download_url for specified video
-    warn "getting download_url for video id: "
-      . "http://www.vimeo.com/moogaloop/load/clip:"
-      . $self->video_id;
-    $self->res(
-        $self->browser->get(
-            "http://www.vimeo.com/moogaloop/load/clip:" . $self->video_id
-        )
-    );
-    if ( $self->res->is_success ) {
-        $self->xml( XML::XPath->new( xml => $self->res->content ) );
+use Data::Printer;
+    my $res = $self->browser->get( 'http://www.vimeo.com/' . $self->video_id );
+    my ( $signature ) = $res->{content} =~ m/"signature":"([^"]+)"/g;
+    my ( $timestamp ) = $res->{content} =~ m/"timestamp":(\d+)/g;
+    my ( $caption )   = $res->{content} =~ m/meta property="og:title" content="([^"]+)"/g;
+    $self->caption( $caption );
+    $self->filename( $self->title_to_filename( $caption ) ); #default filename
+    my ( $is_hd )     = $res->{content} =~ m/meta itemprop="videoQuality" content="(HD)"/g;
+    $is_hd = 'sd' if ! $is_hd;
+    $is_hd = lc $is_hd;
 
-        $self->caption( $self->xml->findvalue('/xml/video/caption') )
-          and $self->set_filename;
-        $self->width( $self->xml->findvalue('/xml/video/width') );
-        $self->height( $self->xml->findvalue('/xml/video/height') );
-        $self->duration( $self->xml->findvalue('/xml/video/duration') );
-        $self->thumbnail( $self->xml->findvalue('/xml/video/thumbnail') );
-        $self->totalComments(
-            $self->xml->findvalue('/xml/video/totalComments') );
-        $self->totalLikes( $self->xml->findvalue('/xml/video/totalLikes') );
-        $self->totalPlays( $self->xml->findvalue('/xml/video/totalPlays') );
-        $self->url_clean( $self->xml->findvalue('/xml/video/url_clean') );
-        $self->url( $self->xml->findvalue('/xml/video/url') );
-        $self->uploader_url( $self->xml->findvalue('/xml/video/uploader_url') );
-        $self->uploader_portrait(
-            $self->xml->findvalue('/xml/video/uploader_portrait') );
-        $self->uploader_display_name(
-            $self->xml->findvalue('/xml/video/uploader_display_name') );
-        $self->nodeId( $self->xml->findvalue('/xml/video/nodeId') );
-        $self->isHD( $self->xml->findvalue('/xml/video/isHD') );
-        $self->privacy( $self->xml->findvalue('/xml/video/privacy') );
-        $self->isPrivate( $self->xml->findvalue('/xml/video/isPrivate') );
-        $self->isPassword( $self->xml->findvalue('/xml/video/isPassword') );
-        $self->isNobody( $self->xml->findvalue('/xml/video/isNobody') );
-        $self->embed_code( $self->xml->findvalue('/xml/video/embed_code') );
+    my $video_id      = $self->video_id;
+    my $url_download  = "http://player.vimeo.com/play_redirect?clip_id=${video_id}&sig=${signature}&time=${timestamp}&quality=${is_hd}&codecs=H264,VP8,VP6&type=moogaloop_local&embed_location=";
 
-        my $request_signature = $self->xml->findvalue('/xml/request_signature');
-        my $request_signature_expires =
-          $self->xml->findvalue('/xml/request_signature_expires');
-        my $caption = $self->xml->findvalue('/xml/video/caption');
-        my $is_hd   = $self->xml->findvalue('/xml/video/isHD');
-        my $quality = 'sd';
-        $quality = 'hd' if ( $is_hd eq '1' );
-        my $download_url_with_req_id =
-            "http://www.vimeo.com/moogaloop/play/clip:"
-          . $self->video_id . "/"
-          . $request_signature . "/"
-          . $request_signature_expires . "/?q="
-          . $quality;
-
-        $self->res(
-            $self->browser->request(
-                HTTP::Request->new( HEAD => $download_url_with_req_id )
-            )
-        );
-        my $video_download_url = $self->res->request->uri;
-        if ( defined $video_download_url ) {
-            $self->download_url( $video_download_url->as_string );
-        }
-        $self->xml(undef);
-    }
-    else {
-        warn "Could not get success response for req. error: "
-          . $self->res->status_line;
-    }
-
+    $self->download_url( $url_download );
 }
 
 =head1 NAME
