@@ -12,8 +12,8 @@ WriteMakefile(
                      'Test::Simple' => 0.44,
                      'Moose'=>0,
                      'XML::XPath'=>0,
-                     'LWP::UserAgent'=>0,
-                     'HTTP::Request'=>0,
-                     'Perl6::Form'=>0,
+                     'HTTP::Tiny'=>0,
+#                    'HTTP::Request'=>0,
+#                    'Perl6::Form'=>0,
                     },
 );
