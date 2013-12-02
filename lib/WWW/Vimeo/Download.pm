@@ -50,21 +50,24 @@ has robot => (
 
 =head1 DESCRIPTION
 
+Since vimeo markup changes frequently, the most updated version sits on github:
+
+  https://github.com/hernan604/WWW--Vimeo--Download
 
 =head1 AUTHOR
 
-    Hernan Lopes
-    CPAN ID: HERNAN
-    hernanlopes < @t > gmail
-    https://github.com/hernan604
+Hernan Lopes
+CPAN ID: HERNAN
+hernanlopes < @t > gmail
+https://github.com/hernan604
 
 =head1 COPYRIGHT
 
-    This program is free software; you can redistribute
-    it and/or modify it under the same terms as Perl itself.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
 
-    The full text of the license can be found in the
-    LICENSE file included with this module.
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
 
