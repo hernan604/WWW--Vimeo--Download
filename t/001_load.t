@@ -11,7 +11,7 @@ isa_ok( $vimeo, 'WWW::Vimeo::Download' );
 
 #$vimeo->load_video( 'http://www.vimeo.com/27855315' );
 #$vimeo->load_video('http://vimeo.com/groups/shortfilms/videos/28012171');
-$vimeo->load_video('http://vimeo.com/57130400'); #very short video, good for testing.. 2mb
+$vimeo->load_video('http://vimeo.com/78508524'); #very short video, good for testing.. 2mb
 ok( $vimeo->download_url =~ m/^http/, 'found download url for video' );
 #warn "---> Video title: " . $vimeo->caption;
 #warn "---> Video download url : " . $vimeo->download_url;
@@ -23,7 +23,7 @@ unlink( $vimeo->filename );
 
 
 #download by id
-$vimeo->load_video('57130400'); #very short video, good for testing.. 2mb
+$vimeo->load_video('51892033'); #very short video, good for testing.. 2mb
 ok( $vimeo->download_url =~ m/^http/, 'found download url for video' );
 #warn "---> Video title: " . $vimeo->caption;
 #warn "---> Video download url : " . $vimeo->download_url;
