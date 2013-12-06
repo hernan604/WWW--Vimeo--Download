@@ -18,7 +18,8 @@ sub on_start {
 sub search {
   my ( $self )        = @_;
   my ( $stuff, $key ) = $self->robot->useragent->content =~ m!data-config-url="([^"]+)&amp;s=([a-zA-Z0-9]+)"!g;
-  $self->append( video_metadata => "http://player.vimeo.com/v2/video/".$self->video_id."/config?byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0&s=".$key );
+# $self->append( video_metadata => "http://player.vimeo.com/v2/video/".$self->video_id."/config?byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0&s=".$key );
+  $self->append( video_metadata => "http://player.vimeo.com/v2/video/".$self->video_id."/config" );
 }
 
 sub video_metadata {
