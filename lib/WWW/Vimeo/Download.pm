@@ -34,7 +34,6 @@ has robot => (
 #So there are 2 variables used as name template: {title} {ext}
 sub download {
     my ( $self, %args ) = @_; 
-#   use DDP;    warn p $args{video_id};
     $self->robot->reader->options( \%args );
     $self->robot->start();
 }
@@ -46,9 +45,20 @@ sub download {
 =head1 SYNOPSIS
 
     use WWW::Vimeo::Download;
-    my $vimeo = WWW::Vimeo::Download->new;
-    $vimeo->set_video_id( 78276321 );
-    $vimeo->set_video_id( 78317700 );
+    my $vimeo = WWW::Vimeo::Download->new();
+
+    #download using url
+    $vimeo->download( video => "http://vimeo.com/64507066" )
+
+    #download specific id and save_as specific path
+    $vimeo->download( video       => 21312321, 
+                      save_as     => "/music/some_name.mp4" 
+                    )
+
+    #download video and replace the name and extension acordingly
+    $vimeo->download( video       => 99292922, 
+                      name_id     => "/music/{title}.{ext}", 
+                    )
 
 =head1 DESCRIPTION
 

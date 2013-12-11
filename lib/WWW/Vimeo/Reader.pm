@@ -69,6 +69,7 @@ sub on_finish {
 #   $self->robot->writer->save( "bla" );
     $self->options( undef );
     $self->video_id( undef );
+    $self->robot->queue->url_list_hash({});
 }
 
 1;

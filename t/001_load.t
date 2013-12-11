@@ -9,43 +9,23 @@ BEGIN { use_ok('WWW::Vimeo::Download'); }
 my $vimeo = WWW::Vimeo::Download->new();
 isa_ok( $vimeo, 'WWW::Vimeo::Download' );
 
-#$vimeo->load_video( 'http://www.vimeo.com/27855315' );
-#$vimeo->load_video('http://vimeo.com/groups/shortfilms/videos/28012171');
-$vimeo->load_video('http://vimeo.com/78508524'); #very short video, good for testing.. 2mb
-ok( $vimeo->download_url =~ m/^http/, 'found download url for video' );
-#warn "---> Video title: " . $vimeo->caption;
-#warn "---> Video download url : " . $vimeo->download_url;
-$vimeo->download;
-#ok( -e $vimeo->filename_nfo, 'nfo created with success' );
-ok( -e $vimeo->filename, 'downloaded file with success' );
-#unlink( $vimeo->filename_nfo );
-unlink( $vimeo->filename );
 
+$vimeo->download( video => 78276321 );
+ok( -e "10 Second Dance.mp4", 'downloaded file 1 with success' );
+unlink( "10 Second Dance.mp4" );
 
-#download by id
-$vimeo->load_video('51892033'); #very short video, good for testing.. 2mb
-ok( $vimeo->download_url =~ m/^http/, 'found download url for video' );
-#warn "---> Video title: " . $vimeo->caption;
-#warn "---> Video download url : " . $vimeo->download_url;
-$vimeo->download;
-#ok( -e $vimeo->filename_nfo, 'nfo created with success' );
-ok( -e $vimeo->filename, 'downloaded file with success' );
-#unlink( $vimeo->filename_nfo );
-unlink( $vimeo->filename );
+$vimeo->download( video => "http://vimeo.com/78276321" );
+ok( -e "10 Second Dance.mp4", 'downloaded file 2 with success' );
+unlink( "10 Second Dance.mp4" );
 
+$vimeo->download( video => "http://vimeo.com/78276321",
+                  save_as => "bla" );
+ok( -e "bla.mp4", 'downloaded file 2 with success' );
+unlink( "bla.mp4" );
 
-
-
-#custom filename
-$vimeo->load_video('57130400'); #very short video, good for testing.. 2mb
-ok( $vimeo->download_url =~ m/^http/, 'found download url for video' );
-my $filename = 'mymovie.xyz';
-$vimeo->download( { filename => $filename } );
-ok( -e $filename, 'downloaded file with success' );
-unlink( $filename );
-
-
-
-
+$vimeo->download( video => 78276321,
+                  save_as => "TEST-{title}.{ext}" );
+ok( -e "TEST-10 Second Dance.mp4", 'downloaded file 3 with success' );
+unlink( "TEST-10 Second Dance.mp4" );
 
 done_testing;
