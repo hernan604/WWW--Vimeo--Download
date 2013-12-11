@@ -7,10 +7,15 @@ use utf8;
 
 our $VERSION = 0.07;
 
-has video_id => (  is      => 'rw'   );
+has video_id    => ( is => 'rw' );
+has options     => ( is => 'rw' );
 
 sub on_start {
-  my ( $self ) = @_;
+  my ( $self )  = @_;
+  my $video_id  = $self->options->{ video };
+    ($video_id) = $video_id =~ m!vimeo.com/(\d{5,})!ig 
+             if $video_id !~ m/^\d{5,}$/;
+  $self->video_id( $video_id );
   warn "Downloading: " . $self->video_id;
   $self->append( search => 'http://www.vimeo.com/' . $self->video_id );
 }
@@ -20,6 +25,7 @@ sub search {
   my ( $stuff, $key ) = $self->robot->useragent->content =~ m!data-config-url="([^"]+)&amp;s=([a-zA-Z0-9]+)"!g;
 # $self->append( video_metadata => "http://player.vimeo.com/v2/video/".$self->video_id."/config?byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0&s=".$key );
   $self->append( video_metadata => "http://player.vimeo.com/v2/video/".$self->video_id."/config" );
+  warn p "http://player.vimeo.com/v2/video/".$self->video_id."/config";
 }
 
 sub video_metadata {
@@ -34,7 +40,11 @@ sub video_metadata {
     and exists $metadata->{ request }->{ files }->{ $first_format_avail }->{ $fmt }
     and exists $metadata->{ request }->{ files }->{ $first_format_avail }->{ $fmt }->{ url };
     if (defined $video_url) {
-      $self->append( video_url => $video_url );
+      $self->append( video_url => $video_url, { 
+          passed_key_values => { 
+              metadata => $metadata 
+          }
+      } );
       last;
     }
   }
@@ -45,6 +55,8 @@ sub video_url {
   $self->robot->writer->save( { 
     video     => $self->robot->useragent->content ,
     video_id  => $self->video_id,
+    metadata  => $self->passed_key_values->{ metadata },
+    options   => $self->options,
   } );
 }
 
@@ -55,6 +67,8 @@ sub on_link {
 sub on_finish {
     my ( $self ) = @_;
 #   $self->robot->writer->save( "bla" );
+    $self->options( undef );
+    $self->video_id( undef );
 }
 
 1;

@@ -9,18 +9,6 @@ use utf8;
 
 our $VERSION = '0.07';
 
-has video_id  =>  ( 
-    is      => 'rw',
-    reader  => 'video_id',
-    writer  => 'set_video_id',
-);
-
-after set_video_id => sub {
-  my ( $self ) = @_; 
-  $self->robot->reader->video_id( $self->video_id );
-  $self->robot->start();
-};
-
 has robot => (
   is      => 'rw',
   default => sub {
@@ -36,6 +24,20 @@ has robot => (
     )
   }
 );
+
+
+#usage:
+#
+#->download( video => "http://vimeo.com/64507066" )
+#->download( video => 21312321, save_as => "/music/some_name.mp4" )
+#->download( video => 99292922, name_id => "/music/{title}.{ext}", )
+#So there are 2 variables used as name template: {title} {ext}
+sub download {
+    my ( $self, %args ) = @_; 
+#   use DDP;    warn p $args{video_id};
+    $self->robot->reader->options( \%args );
+    $self->robot->start();
+}
 
 =head1 NAME
 

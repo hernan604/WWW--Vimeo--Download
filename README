@@ -4,18 +4,16 @@ SYNOPSIS
 
 use WWW::Vimeo::Download;
 my $vimeo = WWW::Vimeo::Download->new();
-$vimeo->load_video( 'XYZ__ID_VIDEO' );        #REQ videoid or video url
-$vimeo->target_dir( '/home/catalyst/tmp/' );  #OPTIONAL target dir
-$vimeo->download();                           #start download
-print $vimeo->download_url;                   #print the url for download
 
-INSTALL
+#download using url
+$vimeo->download( video => "http://vimeo.com/64507066" )
 
-perl Makefile.PL
-make
-make test
-make install
+#download specific id and save_as specific path
+$vimeo->download( video       => 21312321, 
+                  save_as     => "/music/some_name.mp4" 
+                )
 
-or, 
-
-cpanm WWW::Vimeo::Download
+#download video and replace the name and extension acordingly
+$vimeo->download( video       => 99292922, 
+                  name_id     => "/music/{title}.{ext}", 
+                )
